@@ -1,6 +1,6 @@
 # SIGO - Sistema Integrado de Gestão Operacional
 
-O **SIGO** é uma plataforma desenvolvida para automatizar e otimizar processos administrativos e operacionais dentro de instituições de ensino. O sistema centraliza diversas funcionalidades essenciais, garantindo eficiência, precisão e facilidade de uso para professores, gestores e equipas de manutenção.**
+O **SIGO** é uma plataforma desenvolvida para automatizar e otimizar processos administrativos e operacionais dentro de instituições. O sistema centraliza diversas funcionalidades essenciais, garantindo eficiência, precisão e facilidade de uso para professores, gestores e equipas de manutenção.**
 
 ## Funcionalidades Principais
 
