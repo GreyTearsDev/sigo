@@ -4,16 +4,21 @@
   "description": "O **SIGO** é uma plataforma desenvolvida para automatizar e otimizar processos administrativos e operacionais dentro de instituições. O sistema centraliza diversas funcionalidades essenciais, garantindo eficiência, precisão e facilidade de uso para professores, gestores e equipas de manutenção.**",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon ./src/app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.9",
     "prisma": "^6.4.1"
   },
   "dependencies": {
-    "@prisma/client": "^6.4.1"
+    "@prisma/client": "^6.4.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
   }
 }
