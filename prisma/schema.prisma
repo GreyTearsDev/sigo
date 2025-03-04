@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,88 +7,88 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Utilizador {
-  id           Int      @id @unique @default(autoincrement())
-  nome         String   @unique @db.VarChar(300)
-  senha        String   @db.VarChar(100)
-  isAdmin      Boolean  @default(false)
-  atualizadoEm DateTime @updatedAt
+model User {
+  id        Int      @id @unique @default(autoincrement())
+  name      String   @unique @db.VarChar(300)
+  password  String   @db.VarChar(100)
+  isAdmin   Boolean  @default(false)
+  updatedAt DateTime @updatedAt
 }
 
-model Fornecedor {
-  nif          String       @id @unique @db.VarChar(14)
-  nome         String       @unique @db.VarChar(300)
-  email        String? 
-  telefone     String?
-  manutencoes  Manutencao[]
-  atualizadoEm DateTime     @updatedAt
+model Supplier {
+  nif          String        @id @unique @db.VarChar(14)
+  name         String        @unique @db.VarChar(300)
+  email        String?
+  phone        String?
+  updatedAt    DateTime      @updatedAt
+  maintenances Maintenance[]
 }
 
-model Manutencao {
-  id            Int              @id @unique @default(autoincrement())
-  dataPrevista  DateTime         
-  dataExecutada DateTime         @default(now())
-  fornecedor    Fornecedor       @relation(fields: [fornecedorId], references: [nif])
-  fornecedorId  String
-  estado        EstadoManutencao @default(PENDENTE) 
-  diagnosticos  Diagnostico[]    
-  causas        Causa[]          
-  solucoes      Solucao[]        
-  detalhes      String?          @db.VarChar(1000)
-  unidadeAC     UnidadeArCondicionado @relation(fields: [unidadeACId], references: [id])
-  unidadeACId   Int
-  atualizadoEm  DateTime         @updatedAt
+model Maintenance {
+  id            Int                 @id @unique @default(autoincrement())
+  scheduledDate DateTime
+  executedDate  DateTime            @default(now())
+  supplierId    String
+  status        MaintenanceStatus   @default(PENDING)
+  details       String?             @db.VarChar(1000)
+  acUnitId      Int
+  updatedAt     DateTime            @updatedAt
+  acUnit        AirConditioningUnit @relation(fields: [acUnitId], references: [id])
+  supplier      Supplier            @relation(fields: [supplierId], references: [nif])
+  causes        Cause[]             @relation("CauseToMaintenance")
+  diagnoses     Diagnosis[]         @relation("DiagnosisToMaintenance")
+  solutions     Solution[]          @relation("MaintenanceToSolution")
 }
 
-enum EstadoManutencao {
-  PENDENTE
-  EM_PROGRESSO
-  CONCLUIDA
+model Diagnosis {
+  id           Int           @id @unique @default(autoincrement())
+  type         String        @db.VarChar(500)
+  updatedAt    DateTime      @updatedAt
+  maintenances Maintenance[] @relation("DiagnosisToMaintenance")
 }
 
-model Diagnostico {
-  id           Int          @id @unique @default(autoincrement())
-  tipo         String       @db.VarChar(500)
-  atualizadoEm DateTime     @updatedAt
-  manutencoes  Manutencao[]
+model Cause {
+  id           Int           @id @unique @default(autoincrement())
+  type         String        @db.VarChar(500)
+  updatedAt    DateTime      @updatedAt
+  maintenances Maintenance[] @relation("CauseToMaintenance")
 }
 
-model Causa {
-  id           Int          @id @unique @default(autoincrement())
-  tipo         String       @db.VarChar(500)
-  atualizadoEm DateTime     @updatedAt
-  manutencoes  Manutencao[]
+model Solution {
+  id           Int           @id @unique @default(autoincrement())
+  type         String        @db.VarChar(500)
+  updatedAt    DateTime      @updatedAt
+  maintenances Maintenance[] @relation("MaintenanceToSolution")
 }
 
-model Solucao {
-  id           Int          @id @unique @default(autoincrement())
-  tipo         String       @db.VarChar(500)
-  atualizadoEm DateTime     @updatedAt
-  manutencoes  Manutencao[]
+model Brand {
+  id        Int                   @id @unique @default(autoincrement())
+  name      String                @unique @db.VarChar(500)
+  updatedAt DateTime              @updatedAt
+  acUnits   AirConditioningUnit[]
 }
 
-model Marca {
-  id           Int                     @id @unique @default(autoincrement())
-  nome         String                  @db.VarChar(500)
-  unidadesAC   UnidadeArCondicionado[]
-  atualizadoEm DateTime                @updatedAt
+model AirConditioningUnit {
+  id               Int           @id @unique @default(autoincrement())
+  serialNumber     Int           @unique
+  brandId          Int
+  model            String        @db.VarChar(500)
+  btu              Int
+  status           ACUnitStatus  @default(FUNCTIONAL)
+  installationDate DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  brand            Brand         @relation(fields: [brandId], references: [id])
+  maintenances     Maintenance[]
 }
 
-model UnidadeArCondicionado {
-  id             Int             @id @unique @default(autoincrement())
-  numeroSerie    Int             @unique
-  marca          Marca           @relation(fields: [marcaId], references: [id])
-  marcaId        Int
-  modelo         String          @db.VarChar(500)
-  btu            Int
-  estado         EstadoUnidadeAC @default(FUNCIONAL)
-  dataInstalacao DateTime        @default(now())
-  atualizadoEm   DateTime        @updatedAt
-  manutencoes    Manutencao[]
+enum MaintenanceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
 }
 
-enum EstadoUnidadeAC {
-  FORA_DE_SERVICO
-  PRECISA_DE_MANUTENCAO
-  FUNCIONAL
+enum ACUnitStatus {
+  OUT_OF_SERVICE
+  NEEDS_MAINTENANCE
+  FUNCTIONAL
 }
