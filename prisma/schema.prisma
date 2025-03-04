@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Utilizador {
+  id           Int      @id @unique @default(autoincrement())
+  nome         String   @unique @db.VarChar(300)
+  senha        String   @db.VarChar(100)
+  isAdmin      Boolean  @default(false)
+  atualizadoEm DateTime @updatedAt
+}
+
+model Fornecedor {
+  nif          String       @id @unique @db.VarChar(14)
+  nome         String       @unique @db.VarChar(300)
+  email        String? 
+  telefone     String?
+  manutencoes  Manutencao[]
+  atualizadoEm DateTime     @updatedAt
+}
+
+model Manutencao {
+  id            Int              @id @unique @default(autoincrement())
+  dataPrevista  DateTime         
+  dataExecutada DateTime         @default(now())
+  fornecedor    Fornecedor       @relation(fields: [fornecedorId], references: [nif])
+  fornecedorId  String
+  estado        EstadoManutencao @default(PENDENTE) 
+  diagnosticos  Diagnostico[]    
+  causas        Causa[]          
+  solucoes      Solucao[]        
+  detalhes      String?          @db.VarChar(1000)
+  unidadeAC     UnidadeArCondicionado @relation(fields: [unidadeACId], references: [id])
+  unidadeACId   Int
+  atualizadoEm  DateTime         @updatedAt
+}
+
+enum EstadoManutencao {
+  PENDENTE
+  EM_PROGRESSO
+  CONCLUIDA
+}
+
+model Diagnostico {
+  id           Int          @id @unique @default(autoincrement())
+  tipo         String       @db.VarChar(500)
+  atualizadoEm DateTime     @updatedAt
+  manutencoes  Manutencao[]
+}
+
+model Causa {
+  id           Int          @id @unique @default(autoincrement())
+  tipo         String       @db.VarChar(500)
+  atualizadoEm DateTime     @updatedAt
+  manutencoes  Manutencao[]
+}
+
+model Solucao {
+  id           Int          @id @unique @default(autoincrement())
+  tipo         String       @db.VarChar(500)
+  atualizadoEm DateTime     @updatedAt
+  manutencoes  Manutencao[]
+}
+
+model Marca {
+  id           Int                     @id @unique @default(autoincrement())
+  nome         String                  @db.VarChar(500)
+  unidadesAC   UnidadeArCondicionado[]
+  atualizadoEm DateTime                @updatedAt
+}
+
+model UnidadeArCondicionado {
+  id             Int             @id @unique @default(autoincrement())
+  numeroSerie    Int             @unique
+  marca          Marca           @relation(fields: [marcaId], references: [id])
+  marcaId        Int
+  modelo         String          @db.VarChar(500)
+  btu            Int
+  estado         EstadoUnidadeAC @default(FUNCIONAL)
+  dataInstalacao DateTime        @default(now())
+  atualizadoEm   DateTime        @updatedAt
+  manutencoes    Manutencao[]
+}
+
+enum EstadoUnidadeAC {
+  FORA_DE_SERVICO
+  PRECISA_DE_MANUTENCAO
+  FUNCIONAL
+}
