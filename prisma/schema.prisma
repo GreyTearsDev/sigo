@@ -16,7 +16,8 @@ model User {
 }
 
 model Supplier {
-  nif          String        @id @unique @db.VarChar(14)
+  id           Int           @id @unique @default(autoincrement())
+  nif          String        @unique @db.VarChar(14)
   name         String        @unique @db.VarChar(300)
   email        String?
   phone        String?

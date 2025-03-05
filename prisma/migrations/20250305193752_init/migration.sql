@@ -1,90 +1,8 @@
-/*
-  Warnings:
-
-  - You are about to drop the `Causa` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Diagnostico` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Fornecedor` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Manutencao` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Marca` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Solucao` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `UnidadeArCondicionado` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Utilizador` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `_CausaToManutencao` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `_DiagnosticoToManutencao` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `_ManutencaoToSolucao` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "MaintenanceStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED');
 
 -- CreateEnum
 CREATE TYPE "ACUnitStatus" AS ENUM ('OUT_OF_SERVICE', 'NEEDS_MAINTENANCE', 'FUNCTIONAL');
-
--- DropForeignKey
-ALTER TABLE "Manutencao" DROP CONSTRAINT "Manutencao_fornecedorId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Manutencao" DROP CONSTRAINT "Manutencao_unidadeACId_fkey";
-
--- DropForeignKey
-ALTER TABLE "UnidadeArCondicionado" DROP CONSTRAINT "UnidadeArCondicionado_marcaId_fkey";
-
--- DropForeignKey
-ALTER TABLE "_CausaToManutencao" DROP CONSTRAINT "_CausaToManutencao_A_fkey";
-
--- DropForeignKey
-ALTER TABLE "_CausaToManutencao" DROP CONSTRAINT "_CausaToManutencao_B_fkey";
-
--- DropForeignKey
-ALTER TABLE "_DiagnosticoToManutencao" DROP CONSTRAINT "_DiagnosticoToManutencao_A_fkey";
-
--- DropForeignKey
-ALTER TABLE "_DiagnosticoToManutencao" DROP CONSTRAINT "_DiagnosticoToManutencao_B_fkey";
-
--- DropForeignKey
-ALTER TABLE "_ManutencaoToSolucao" DROP CONSTRAINT "_ManutencaoToSolucao_A_fkey";
-
--- DropForeignKey
-ALTER TABLE "_ManutencaoToSolucao" DROP CONSTRAINT "_ManutencaoToSolucao_B_fkey";
-
--- DropTable
-DROP TABLE "Causa";
-
--- DropTable
-DROP TABLE "Diagnostico";
-
--- DropTable
-DROP TABLE "Fornecedor";
-
--- DropTable
-DROP TABLE "Manutencao";
-
--- DropTable
-DROP TABLE "Marca";
-
--- DropTable
-DROP TABLE "Solucao";
-
--- DropTable
-DROP TABLE "UnidadeArCondicionado";
-
--- DropTable
-DROP TABLE "Utilizador";
-
--- DropTable
-DROP TABLE "_CausaToManutencao";
-
--- DropTable
-DROP TABLE "_DiagnosticoToManutencao";
-
--- DropTable
-DROP TABLE "_ManutencaoToSolucao";
-
--- DropEnum
-DROP TYPE "EstadoManutencao";
-
--- DropEnum
-DROP TYPE "EstadoUnidadeAC";
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -99,13 +17,14 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "Supplier" (
+    "id" SERIAL NOT NULL,
     "nif" VARCHAR(14) NOT NULL,
     "name" VARCHAR(300) NOT NULL,
     "email" TEXT,
     "phone" TEXT,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Supplier_pkey" PRIMARY KEY ("nif")
+    CONSTRAINT "Supplier_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -203,6 +122,9 @@ CREATE UNIQUE INDEX "User_id_key" ON "User"("id");
 CREATE UNIQUE INDEX "User_name_key" ON "User"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Supplier_id_key" ON "Supplier"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Supplier_nif_key" ON "Supplier"("nif");
 
 -- CreateIndex
@@ -242,10 +164,10 @@ CREATE INDEX "_DiagnosisToMaintenance_B_index" ON "_DiagnosisToMaintenance"("B")
 CREATE INDEX "_CauseToMaintenance_B_index" ON "_CauseToMaintenance"("B");
 
 -- AddForeignKey
-ALTER TABLE "Maintenance" ADD CONSTRAINT "Maintenance_supplierId_fkey" FOREIGN KEY ("supplierId") REFERENCES "Supplier"("nif") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Maintenance" ADD CONSTRAINT "Maintenance_acUnitId_fkey" FOREIGN KEY ("acUnitId") REFERENCES "AirConditioningUnit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Maintenance" ADD CONSTRAINT "Maintenance_acUnitId_fkey" FOREIGN KEY ("acUnitId") REFERENCES "AirConditioningUnit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Maintenance" ADD CONSTRAINT "Maintenance_supplierId_fkey" FOREIGN KEY ("supplierId") REFERENCES "Supplier"("nif") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AirConditioningUnit" ADD CONSTRAINT "AirConditioningUnit_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "Brand"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
