@@ -28,7 +28,7 @@ enum Role {
 
 model Alert {
   id       Int      @id @default(autoincrement())
-  type     AlertType
+  title    String   @db.VarChar(50)
   message  String   @db.VarChar(100)
 }
 
