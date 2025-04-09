@@ -8,78 +8,201 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @unique @default(autoincrement())
-  name      String   @unique @db.VarChar(300)
-  password  String   @db.VarChar(100)
-  isAdmin   Boolean  @default(false)
+  id                   Int      @id @default(autoincrement())
+  firstName            String   @db.VarChar(100)
+  lastName             String   @db.VarChar(100)
+  password             String   @db.VarChar(100)
+  canApproveCostReport Boolean  @default(false)
+  isAdmin              Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  role                 Role     @default(CLIENT)
+  alerts               Alert[]
+}
+
+enum Role {
+  ADMINISTRATOR
+  CLIENT
+  SUPPLIER
+}
+
+model Alert {
+  id       Int      @id @default(autoincrement())
+  type     AlertType
+  message  String   @db.VarChar(100)
+}
+
+model DeletionHistory {
+  id        Int      @id @default(autoincrement())
+  tableName String
+  recordId  Int
+  deletedAt DateTime @default(now())
+  data      Json 
+}
+
+model PhoneNumber {
+  id        Int      @id @default(autoincrement())
+  number    String   @unique @db.VarChar(20)
+  areaCode  Int      @default(244)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ClientCompany {
+  id        Int      @id @default(autoincrement())
+  nif       String   @unique @db.VarChar(14)
+  name      String   @db.VarChar(200)
+  address   String   @db.VarChar(200)
+  areaCode  Int      @default(244)
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Supplier {
-  id           Int           @id @unique @default(autoincrement())
-  nif          String        @unique @db.VarChar(14)
-  name         String        @unique @db.VarChar(300)
-  email        String?
-  phone        String?
-  updatedAt    DateTime      @updatedAt
-  maintenances Maintenance[]
+  id            Int           @id @default(autoincrement())
+  nif           String        @unique @db.VarChar(14)
+  name          String        @unique @db.VarChar(300)
+  email         String?
+  phoneNumberId Int
+  phone         PhoneNumber   @relation(fields: [phoneNumberId], references: [id])
+  status        SupplierStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  maintenances  Maintenance[]
+}
+
+enum SupplierStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model CostReport {
+  id                         Int               @id @default(autoincrement())
+  approvalStatus             CostReportStatus  @default(PENDING)
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+  spareParts                 SparePart[]       @relation("CostReportToSparePart")
+  laborPrice                 Int
+  additionalCostDescription  String            @db.VarChar(1000)
+  totalOfAdditionalCosts      Int
+  totalOfCostReport           Int
+  approvalDate               DateTime?
+}
+
+enum CostReportStatus {
+  PENDING
+  APPROVED
+}
+
+model SparePart {
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(300)
+  system         ACSystem
+  registeredById Int
+  registeredBy   User      @relation(fields: [registeredById], references: [id])
+  description    String    @db.VarChar(500)
+  quantity       Int 
+  unitPrice      Int 
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+enum ACSystem {
+  EXTERNAL
+  INTERNAL
+  CONTROL_AND_SECURITY
+  REFRIGERATION_AND_PIPING
+  ELECTRICAL_SUPPLY
+  DRAINAGE_AND_VENTILATION
 }
 
 model Maintenance {
-  id            Int                 @id @unique @default(autoincrement())
-  scheduledDate DateTime
-  executedDate  DateTime            @default(now())
-  supplierId    String
-  status        MaintenanceStatus   @default(PENDING)
-  details       String?             @db.VarChar(1000)
-  acUnitId      Int
-  updatedAt     DateTime            @updatedAt
-  acUnit        AirConditioningUnit @relation(fields: [acUnitId], references: [id])
-  supplier      Supplier            @relation(fields: [supplierId], references: [nif])
-  causes        Cause[]             @relation("CauseToMaintenance")
-  diagnoses     Diagnosis[]         @relation("DiagnosisToMaintenance")
-  solutions     Solution[]          @relation("MaintenanceToSolution")
+  id             Int                 @id @default(autoincrement())
+  scheduledDate  DateTime
+  executedDate   DateTime            @default(now())
+  supplierId     Int
+  status         MaintenanceStatus   @default(PENDING)
+  details        String?             @db.VarChar(1000)
+  acUnitId       Int
+  updatedAt      DateTime            @updatedAt
+  acUnit         ACUnit              @relation(fields: [acUnitId], references: [id])
+  supplier       Supplier            @relation(fields: [supplierId], references: [id])
+  issues        Issue[]              @relation("IssueToMaintenance")
+  costReports   CostReport[]         @relation("CostReportToMaintenance")
 }
 
-model Diagnosis {
-  id           Int           @id @unique @default(autoincrement())
-  type         String        @db.VarChar(500)
-  updatedAt    DateTime      @updatedAt
-  maintenances Maintenance[] @relation("DiagnosisToMaintenance")
+model Issue {
+  id           Int       @id @default(autoincrement())
+  description  String    @db.VarChar(500)
+  updatedAt    DateTime  @updatedAt
+  system       ACSystem
+  causeId      Int
+  solutionId   Int
+  cause        Cause     @relation(fields: [causeId], references: [id])
+  solution     Solution  @relation(fields: [solutionId], references: [id])
 }
 
 model Cause {
-  id           Int           @id @unique @default(autoincrement())
-  type         String        @db.VarChar(500)
-  updatedAt    DateTime      @updatedAt
-  maintenances Maintenance[] @relation("CauseToMaintenance")
+  id           Int       @id @default(autoincrement())
+  description  String    @db.VarChar(500)
+  updatedAt    DateTime  @updatedAt
 }
 
 model Solution {
-  id           Int           @id @unique @default(autoincrement())
-  type         String        @db.VarChar(500)
-  updatedAt    DateTime      @updatedAt
-  maintenances Maintenance[] @relation("MaintenanceToSolution")
+  id           Int       @id @default(autoincrement())
+  description  String    @db.VarChar(500)
+  updatedAt    DateTime  @updatedAt
 }
 
 model Brand {
-  id        Int                   @id @unique @default(autoincrement())
-  name      String                @unique @db.VarChar(500)
-  updatedAt DateTime              @updatedAt
-  acUnits   AirConditioningUnit[]
+  id         Int          @id @default(autoincrement())
+  name       String       @unique @db.VarChar(500)
+  updatedAt  DateTime     @updatedAt
+  acUnits    ACUnit[]
 }
 
-model AirConditioningUnit {
-  id               Int           @id @unique @default(autoincrement())
-  serialNumber     Int           @unique
+model ACUnit {
+  id               Int            @id @default(autoincrement())
+  serialNumber     Int            @unique
   brandId          Int
-  model            String        @db.VarChar(500)
+  brand            Brand          @relation(fields: [brandId], references: [id])
+  model            String         @db.VarChar(500)
   btu              Int
-  status           ACUnitStatus  @default(FUNCTIONAL)
-  installationDate DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  brand            Brand         @relation(fields: [brandId], references: [id])
+  status           ACUnitStatus   @default(FUNCTIONAL)
+  installationDate DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  locationId       Int
+  location         ACUnitLocation @relation(fields: [locationId], references: [id])
   maintenances     Maintenance[]
+}
+
+model ACUnitLocation {
+  id           Int           @id @default(autoincrement())
+  name         String        @db.VarChar(100)
+  locationType Location      
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  acUnits      ACUnit[]
+}
+
+model ACUnitLocationHistory {
+  id               Int                 @id @default(autoincrement())
+  acUnitId         Int
+  acUnit           ACUnit               @relation(fields: [acUnitId], references: [id])
+  newLocationId    Int
+  previousLocations ACUnitLocation[]
+  movedInDate      DateTime
+  movedOutDate     DateTime             @default(now())
+}
+
+enum Location {
+  PPP_GYM
+  PPP_CLASSROOM
+  PPP_ADMINISTRATION
+  LSC_OFFICE
+  LSC_APARTMENT_COMPAO
+  LSC_APARTMENT_RESTINGA
+  OUT_OF_SERVICE
 }
 
 enum MaintenanceStatus {
