@@ -1,3 +1,3 @@
-import { brand } from "./brandQueries.mjs";
+import { brand } from "./queries/brandQueries.mjs";
 
 export const db = { brand };
